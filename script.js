@@ -9,7 +9,6 @@ const playerO = document.querySelector(".o-player");
 const x = "❌";
 const o = "⭕️";
 let winner = "";
-let moveCount = 0;
 let nextMove = o;
 
 playBtn.addEventListener("click", () => {
@@ -43,16 +42,20 @@ makeGameGrid(3, 3);
 const cells = document.querySelectorAll(".cell");
 cells.forEach((cell) => {
 	cell.addEventListener("click", (e) => {
-		console.log(winner);
-		if (!winner) {
-			playGame(e.target);
+		playGame(e.target);
+		allCells = Array.from(cells);
+		if (
+			allCells.every((cell) => {
+				return cell.innerText;
+			})
+		) {
+			resetBoard("NO ONE WON :(");
 		}
 	});
 });
 
 function playGame(cell) {
 	if (!cell.innerText) {
-		moveCount++;
 		showWhoGoes(nextMove);
 		nextMove = nextMove === x ? o : x;
 		cell.innerText = nextMove;
@@ -94,8 +97,6 @@ function checkForWins() {
 		if (oWins || xWins) {
 			winner = xWins ? x : o;
 			concludeGame(winner);
-		} else if (!winner && moveCount === 9) {
-			resetBoard("NO ONE WON :(");
 		}
 	});
 }
