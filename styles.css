@@ -73,7 +73,7 @@ h1 {
     width: 600px;
     height: 600px;
     color: #fff;
-    display: flex;
+    display: none;
     justify-content: center;
     align-items: center;
     background-color: #0700c9;

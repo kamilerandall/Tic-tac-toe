@@ -8,8 +8,15 @@ const playerO = document.querySelector(".o-player");
 
 const x = "❌";
 const o = "⭕️";
-let gameCount = 0;
+let winner = "";
 let moveCount = 0;
+let nextMove = o;
+
+playBtn.addEventListener("click", () => {
+	banner.style.display = "none";
+	scoreBoard.style.display = "inline-block";
+	gameSpace.style.display = "flex";
+});
 
 function createNewElement(tagName, classToAdd, contentOfEl) {
 	let newEl = document.createElement(tagName);
@@ -18,48 +25,43 @@ function createNewElement(tagName, classToAdd, contentOfEl) {
 	return newEl;
 }
 
-let gameGrid = [
-	["", "", ""],
-	["", "", ""],
-	["", "", ""],
-];
+function makeGameGrid(columns, rows) {
+	for (let i = 0; i < columns; i++) {
+		let cellId = i.toString();
+		let column = createNewElement("section", "column", "");
+		gameSpace.appendChild(column);
+		for (let j = 0; j < rows; j++) {
+			cell = createNewElement("div", "cell", "");
+			cell.id = cellId + j.toString();
+			column.appendChild(cell);
+		}
+	}
+}
 
-gameGrid.forEach((row, i) => {
-	let cellId = i.toString();
-	let column = createNewElement("section", "column", "");
-	gameSpace.appendChild(column);
-	row.forEach((cell, i) => {
-		cell = createNewElement("div", "cell", "");
-		cell.id = cellId + i.toString();
-		column.appendChild(cell);
-		cell.addEventListener("click", (e) => {
+makeGameGrid(3, 3);
+
+const cells = document.querySelectorAll(".cell");
+cells.forEach((cell) => {
+	cell.addEventListener("click", (e) => {
+		console.log(winner);
+		if (!winner) {
 			playGame(e.target);
-		});
+		}
 	});
 });
-
-playBtn.addEventListener("click", startGame);
-
-function startGame() {
-	banner.style.display = "none";
-	scoreBoard.style.display = "inline-block";
-}
 
 function playGame(cell) {
 	if (!cell.innerText) {
 		moveCount++;
-		showWhoGoes(gameCount % 2);
-		if (gameCount % 2 === 0) {
-			cell.innerText = moveCount % 2 === 0 ? o : x;
-		} else {
-			cell.innerText = moveCount % 2 === 0 ? x : o;
-		}
+		showWhoGoes(nextMove);
+		nextMove = nextMove === x ? o : x;
+		cell.innerText = nextMove;
 	}
 	checkForWins();
 }
 
-function showWhoGoes(num) {
-	if ((moveCount + num) % 2 === 0) {
+function showWhoGoes(nextMove) {
+	if (nextMove === x) {
 		playerX.style.textShadow = "#FC0 1px 0 30px";
 		playerO.style.textShadow = "none";
 	} else {
@@ -68,24 +70,8 @@ function showWhoGoes(num) {
 	}
 }
 
-function getClickedIdsBySymbol(sym) {
-	const wholeGrid = document.querySelectorAll(".cell");
-	let allCells = [];
-	wholeGrid.forEach((cell) => {
-		allCells.push(cell);
-	});
-
-	let allOfSelectedSym = allCells.filter((item) => {
-		return item.innerText.includes(sym);
-	});
-	let onlyIds = allOfSelectedSym.map((el) => {
-		return el.id;
-	});
-	return onlyIds;
-}
-
 function checkForWins() {
-	let xWins, oWins, winner;
+	let xWins, oWins;
 	const winCombos = [
 		["00", "01", "02"],
 		["10", "11", "12"],
@@ -108,11 +94,26 @@ function checkForWins() {
 		if (oWins || xWins) {
 			winner = xWins ? x : o;
 			concludeGame(winner);
-			return;
 		} else if (!winner && moveCount === 9) {
 			resetBoard("NO ONE WON :(");
 		}
 	});
+}
+
+function getClickedIdsBySymbol(sym) {
+	const wholeGrid = document.querySelectorAll(".cell");
+	let allCells = [];
+	wholeGrid.forEach((cell) => {
+		allCells.push(cell);
+	});
+
+	let allOfSelectedSym = allCells.filter((item) => {
+		return item.innerText.includes(sym);
+	});
+	let onlyIds = allOfSelectedSym.map((el) => {
+		return el.id;
+	});
+	return onlyIds;
 }
 
 function concludeGame(winner) {
@@ -127,38 +128,25 @@ function concludeGame(winner) {
 	}
 }
 
+function addPoints(scoreToIncrease) {
+	let points = parseInt(scoreToIncrease.innerText);
+	points++;
+	scoreToIncrease.innerText = points.toString();
+}
+
 function resetBoard(text) {
 	moveCount = 0;
-	gameCount++;
 	banner.style.display = "block";
+	gameSpace.style.display = "none";
 	bannerHeading.innerText = text;
 	playBtn.innerText = "Play Again?";
 	const wholeGrid = document.querySelectorAll(".cell");
 	wholeGrid.forEach((cell) => {
 		cell.innerText = "";
 	});
+	winner = "";
 }
-
-function addPoints(scoreToIncrease) {
-	let points = parseInt(scoreToIncrease.innerText);
-	points++;
-	scoreToIncrease.innerText = points.toString();
-}
-// const winCombos = [
-// 	["00", "01", "02"],
-// 	["03", "04", "05"],
-// 	["06", "07", "08"],
-// 	["00", "03", "06"],
-// 	["01", "04", "07"],
-// 	["02", "05", "08"],
-// 	["00", "04", "08"],
-// 	["02", "04", "06"],
-// ];
 
 // 00 10 20
 // 01 11 21
 // 02 12 22
-
-// 00 03 06
-// 01 04 07
-// 02 05 08
