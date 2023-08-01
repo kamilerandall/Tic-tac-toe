@@ -1,5 +1,5 @@
-const singleBtn = document.querySelector(".single-play");
-const twoPlayBtn = document.querySelector(".two-play");
+const singlePlayerBtn = document.querySelector(".single-play");
+const twoPlayerBtn = document.querySelector(".two-play");
 const banner = document.querySelector(".banner");
 const scoreBoard = document.querySelector(".score-board");
 const gameSpace = document.querySelector(".game");
@@ -20,7 +20,7 @@ function makeGameGrid(columns, rows) {
 		let column = createNewElement("section", "column", "");
 		gameSpace.appendChild(column);
 		for (let j = 0; j < rows; j++) {
-			cell = createNewElement("div", "cell", "");
+			const cell = createNewElement("div", "cell", "");
 			cell.id = cellId + j.toString();
 			column.appendChild(cell);
 		}
@@ -29,55 +29,45 @@ function makeGameGrid(columns, rows) {
 
 makeGameGrid(3, 3);
 
-let twoPlayerGame, singlePlayerGame;
+let isSinglePlayerGame;
 const x = "❌";
 const o = "⭕️";
-let winner = "";
 let nextMove = o;
 let humanIcon = x;
 let computerIcon = o;
 
-singleBtn.addEventListener("click", () => {
-	banner.style.display = "none";
-	scoreBoard.style.display = "inline-block";
-	gameSpace.style.display = "flex";
-	singlePlayerGame = true;
-	twoPlayerGame = false;
+singlePlayerBtn.addEventListener("click", () => {
+	[banner, scoreBoard, gameSpace].forEach((item) =>
+		item.classList.add("changed")
+	);
+	isSinglePlayerGame = true;
 	showWhoGoes(humanIcon);
 });
 
-twoPlayBtn.addEventListener("click", () => {
-	banner.style.display = "none";
-	scoreBoard.style.display = "inline-block";
-	gameSpace.style.display = "flex";
-	twoPlayerGame = true;
-	singlePlayerGame = false;
+twoPlayerBtn.addEventListener("click", () => {
+	[banner, scoreBoard, gameSpace].forEach((item) =>
+		item.classList.add("changed")
+	);
+	isSinglePlayerGame = false;
 });
 
 const cells = document.querySelectorAll(".cell");
 cells.forEach((cell) => {
 	cell.addEventListener("click", (e) => {
 		playGame(e.target);
-		allCells = Array.from(cells);
-		if (
-			allCells.every((cell) => {
-				return cell.innerText;
-			})
-		) {
-			resetBoard("NO ONE WON :(");
-		}
 	});
 });
+const allCellsArray = Array.from(cells);
 
 function playGame(cell) {
 	if (!cell.innerText) {
-		if (twoPlayerGame) {
+		if (isSinglePlayerGame) {
+			cell.innerText = humanIcon;
+			computerMove(computerIcon);
+		} else {
 			showWhoGoes(nextMove);
 			nextMove = nextMove === x ? o : x;
 			cell.innerText = nextMove;
-		} else if (singlePlayerGame) {
-			cell.innerText = humanIcon;
-			computerMove(computerIcon);
 		}
 	}
 
@@ -85,13 +75,8 @@ function playGame(cell) {
 }
 
 function showWhoGoes(nextMove) {
-	if (nextMove === x) {
-		playerX.style.textShadow = "#FC0 1px 0 30px";
-		playerO.style.textShadow = "none";
-	} else {
-		playerO.style.textShadow = "#FC0 1px 0 30px";
-		playerX.style.textShadow = "none";
-	}
+	playerX.style.textShadow = nextMove === x ? "#FC0 1px 0 30px" : "none";
+	playerO.style.textShadow = nextMove === o ? "#FC0 1px 0 30px" : "none";
 }
 
 function checkForWins() {
@@ -106,45 +91,30 @@ function checkForWins() {
 		["00", "11", "22"],
 		["02", "11", "20"],
 	];
+	function getCellIdsBySymbol(sym) {
+		return allCellsArray
+			.filter((item) => item.innerText.includes(sym))
+			.map((el) => el.id);
+	}
 
 	winCombos.forEach((combo) => {
-		xWins = combo.every((id) => {
-			return getClickedIdsBySymbol(x).includes(id);
-		});
-		oWins = combo.every((id) => {
-			return getClickedIdsBySymbol(o).includes(id);
-		});
+		xWins = combo.every((id) => getCellIdsBySymbol(x).includes(id));
+		oWins = combo.every((id) => getCellIdsBySymbol(o).includes(id));
 
 		if (oWins || xWins) {
-			winner = xWins ? x : o;
-			humanIcon = humanIcon === x ? o : x;
-			computerIcon = computerIcon === x ? o : x;
-			concludeGame(winner);
+			const xScore = document.querySelector(".x-score");
+			const oScore = document.querySelector(".o-score");
+
+			addPoints(xWins ? xScore : oScore);
+			endGame(xWins ? "❌ WON" : "⭕️ WON");
+
+			return;
 		}
 	});
-}
 
-function getClickedIdsBySymbol(sym) {
-	let allCells = Array.from(cells);
-
-	let allOfSelectedSym = allCells.filter((item) => {
-		return item.innerText.includes(sym);
-	});
-	let onlyIds = allOfSelectedSym.map((el) => {
-		return el.id;
-	});
-	return onlyIds;
-}
-
-function concludeGame(winner) {
-	const xScore = document.querySelector(".x-score");
-	const oScore = document.querySelector(".o-score");
-	if (winner === x) {
-		addPoints(xScore);
-		resetBoard("❌ WON");
-	} else if (winner === o) {
-		addPoints(oScore);
-		resetBoard("⭕️ WON");
+	//allCells = Array.from(cells);
+	if (allCellsArray.every((cell) => cell.innerText)) {
+		endGame("NO ONE WON :(");
 	}
 }
 
@@ -154,34 +124,31 @@ function addPoints(scoreToIncrease) {
 	scoreToIncrease.innerText = points.toString();
 }
 
-function resetBoard(text) {
-	banner.style.display = "block";
-	gameSpace.style.display = "none";
+function endGame(text) {
+	[banner, scoreBoard, gameSpace].forEach((item) =>
+		item.classList.remove("changed")
+	);
 	bannerHeading.innerText = text;
-	if (singlePlayerGame) {
-		singleBtn.innerText = "Play Again?";
-		twoPlayBtn.innerText = "TWO PLAYERS";
-	} else if (twoPlayerGame) {
-		twoPlayBtn.innerText = "Play Again?";
-		singleBtn.innerText = "SINGLE PLAYER";
-	}
-	const wholeGrid = document.querySelectorAll(".cell");
-	wholeGrid.forEach((cell) => {
+
+	singlePlayerBtn.innerText = isSinglePlayerGame
+		? "Play Again?"
+		: "SINGLE PLAYER";
+	twoPlayerBtn.innerText = isSinglePlayerGame ? "TWO PLAYERS" : "Play Again?";
+
+	cells.forEach((cell) => {
 		cell.innerText = "";
 	});
-	winner = "";
+	humanIcon = humanIcon === x ? o : x;
+	computerIcon = computerIcon === x ? o : x;
 }
 
 function computerMove(computSym) {
-	allCells = Array.from(cells);
-	let emptyCells = allCells.filter((cell) => {
-		return !cell.innerText;
-	});
+	const emptyCells = allCellsArray.filter((cell) => !cell.innerText);
 	if (emptyCells.length === 0) {
-		resetBoard("NO ONE WON :(");
+		endGame("NO ONE WON :(");
 	} else {
-		let randomIndex = Math.floor(Math.random() * emptyCells.length);
-		let computerId = emptyCells[randomIndex].id;
+		const randomIndex = Math.floor(Math.random() * emptyCells.length);
+		const computerId = emptyCells[randomIndex].id;
 		cells.forEach((cell) => {
 			if (cell.id === computerId) {
 				cell.innerText = computSym;
