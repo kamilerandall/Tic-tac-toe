@@ -1,21 +1,11 @@
-const playBtn = document.querySelector(".play-btn");
+const singleBtn = document.querySelector(".single-play");
+const twoPlayBtn = document.querySelector(".two-play");
 const banner = document.querySelector(".banner");
 const scoreBoard = document.querySelector(".score-board");
 const gameSpace = document.querySelector(".game");
 const bannerHeading = document.querySelector(".banner-h1");
 const playerX = document.querySelector(".x-player");
 const playerO = document.querySelector(".o-player");
-
-const x = "❌";
-const o = "⭕️";
-let winner = "";
-let nextMove = o;
-
-playBtn.addEventListener("click", () => {
-	banner.style.display = "none";
-	scoreBoard.style.display = "inline-block";
-	gameSpace.style.display = "flex";
-});
 
 function createNewElement(tagName, classToAdd, contentOfEl) {
 	let newEl = document.createElement(tagName);
@@ -39,6 +29,31 @@ function makeGameGrid(columns, rows) {
 
 makeGameGrid(3, 3);
 
+let twoPlayerGame, singlePlayerGame;
+const x = "❌";
+const o = "⭕️";
+let winner = "";
+let nextMove = o;
+let humanIcon = x;
+let computerIcon = o;
+
+singleBtn.addEventListener("click", () => {
+	banner.style.display = "none";
+	scoreBoard.style.display = "inline-block";
+	gameSpace.style.display = "flex";
+	singlePlayerGame = true;
+	twoPlayerGame = false;
+	showWhoGoes(humanIcon);
+});
+
+twoPlayBtn.addEventListener("click", () => {
+	banner.style.display = "none";
+	scoreBoard.style.display = "inline-block";
+	gameSpace.style.display = "flex";
+	twoPlayerGame = true;
+	singlePlayerGame = false;
+});
+
 const cells = document.querySelectorAll(".cell");
 cells.forEach((cell) => {
 	cell.addEventListener("click", (e) => {
@@ -56,10 +71,16 @@ cells.forEach((cell) => {
 
 function playGame(cell) {
 	if (!cell.innerText) {
-		showWhoGoes(nextMove);
-		nextMove = nextMove === x ? o : x;
-		cell.innerText = nextMove;
+		if (twoPlayerGame) {
+			showWhoGoes(nextMove);
+			nextMove = nextMove === x ? o : x;
+			cell.innerText = nextMove;
+		} else if (singlePlayerGame) {
+			cell.innerText = humanIcon;
+			computerMove(computerIcon);
+		}
 	}
+
 	checkForWins();
 }
 
@@ -96,17 +117,15 @@ function checkForWins() {
 
 		if (oWins || xWins) {
 			winner = xWins ? x : o;
+			humanIcon = humanIcon === x ? o : x;
+			computerIcon = computerIcon === x ? o : x;
 			concludeGame(winner);
 		}
 	});
 }
 
 function getClickedIdsBySymbol(sym) {
-	const wholeGrid = document.querySelectorAll(".cell");
-	let allCells = [];
-	wholeGrid.forEach((cell) => {
-		allCells.push(cell);
-	});
+	let allCells = Array.from(cells);
 
 	let allOfSelectedSym = allCells.filter((item) => {
 		return item.innerText.includes(sym);
@@ -136,11 +155,16 @@ function addPoints(scoreToIncrease) {
 }
 
 function resetBoard(text) {
-	moveCount = 0;
 	banner.style.display = "block";
 	gameSpace.style.display = "none";
 	bannerHeading.innerText = text;
-	playBtn.innerText = "Play Again?";
+	if (singlePlayerGame) {
+		singleBtn.innerText = "Play Again?";
+		twoPlayBtn.innerText = "TWO PLAYERS";
+	} else if (twoPlayerGame) {
+		twoPlayBtn.innerText = "Play Again?";
+		singleBtn.innerText = "SINGLE PLAYER";
+	}
 	const wholeGrid = document.querySelectorAll(".cell");
 	wholeGrid.forEach((cell) => {
 		cell.innerText = "";
@@ -148,6 +172,20 @@ function resetBoard(text) {
 	winner = "";
 }
 
-// 00 10 20
-// 01 11 21
-// 02 12 22
+function computerMove(computSym) {
+	allCells = Array.from(cells);
+	let emptyCells = allCells.filter((cell) => {
+		return !cell.innerText;
+	});
+	if (emptyCells.length === 0) {
+		resetBoard("NO ONE WON :(");
+	} else {
+		let randomIndex = Math.floor(Math.random() * emptyCells.length);
+		let computerId = emptyCells[randomIndex].id;
+		cells.forEach((cell) => {
+			if (cell.id === computerId) {
+				cell.innerText = computSym;
+			}
+		});
+	}
+}
