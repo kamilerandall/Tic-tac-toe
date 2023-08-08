@@ -14,20 +14,21 @@ function createNewElement(tagName, classToAdd, contentOfEl) {
 	return newEl;
 }
 
-function makeGameGrid(columns, rows) {
-	for (let i = 0; i < columns; i++) {
+function makeGameGrid(count) {
+	for (let i = 0; i < count; i++) {
 		let cellId = i.toString();
 		let column = createNewElement("section", "column", "");
 		gameSpace.appendChild(column);
-		for (let j = 0; j < rows; j++) {
+		for (let j = 0; j < count; j++) {
 			const cell = createNewElement("div", "cell", "");
+			cell.style.height = `calc(100%/${count})`;
 			cell.id = cellId + j.toString();
 			column.appendChild(cell);
 		}
 	}
 }
 
-makeGameGrid(3, 3);
+makeGameGrid(5);
 
 let isSinglePlayerGame;
 const x = "❌";
@@ -96,6 +97,8 @@ function checkForWins() {
 			.filter((item) => item.innerText.includes(sym))
 			.map((el) => el.id);
 	}
+
+	console.log(getCellIdsBySymbol(x));
 
 	winCombos.forEach((combo) => {
 		xWins = combo.every((id) => getCellIdsBySymbol(x).includes(id));

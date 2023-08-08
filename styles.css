@@ -85,7 +85,6 @@ h1 {
     display: none;
     justify-content: center;
     align-items: center;
-    background-color: #0700c9;
 }
 
 .game.changed {
@@ -108,8 +107,8 @@ h1 {
     font-size: 50px;
     margin-top: 0.5%;
     width: 99%;
-    height: 33%;
     background-color: #000;
+    border: 3px solid #0700c9;
 }
 
 .cell:hover {
