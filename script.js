@@ -6,6 +6,7 @@ const gameSpace = document.querySelector(".game");
 const bannerHeading = document.querySelector(".banner-h1");
 const playerX = document.querySelector(".x-player");
 const playerO = document.querySelector(".o-player");
+const count = 4;
 
 function createNewElement(tagName, classToAdd, contentOfEl) {
 	let newEl = document.createElement(tagName);
@@ -28,7 +29,19 @@ function makeGameGrid(count) {
 	}
 }
 
-makeGameGrid(5);
+function makeGridToCheck(count) {
+	let gridToCheck = [];
+	for (let i = 0; i < count; i++) {
+		let row = [];
+		for (let j = 0; j < count; j++) {
+			row.push("");
+		}
+		gridToCheck.push(row);
+	}
+	return gridToCheck;
+}
+
+makeGameGrid(count);
 
 let isSinglePlayerGame;
 const x = "❌";
@@ -36,6 +49,7 @@ const o = "⭕️";
 let nextMove = o;
 let humanIcon = x;
 let computerIcon = o;
+let gridToCheck = makeGridToCheck(count);
 
 singlePlayerBtn.addEventListener("click", () => {
 	[banner, scoreBoard, gameSpace].forEach((item) =>
@@ -64,15 +78,39 @@ function playGame(cell) {
 	if (!cell.innerText) {
 		if (isSinglePlayerGame) {
 			cell.innerText = humanIcon;
+			fillGridToCheck(cell, humanIcon);
 			computerMove(computerIcon);
 		} else {
 			showWhoGoes(nextMove);
 			nextMove = nextMove === x ? o : x;
 			cell.innerText = nextMove;
+			fillGridToCheck(cell, nextMove);
 		}
 	}
-
 	checkForWins();
+}
+
+function fillGridToCheck(cell, sym) {
+	let selectedCellId = cell.id.split("");
+	let firstCoord = Number(selectedCellId[0]);
+	let secondCoord = Number(selectedCellId[1]);
+	gridToCheck[firstCoord][secondCoord] = sym;
+}
+
+function computerMove(computSym) {
+	const emptyCells = allCellsArray.filter((cell) => !cell.innerText);
+	if (emptyCells.length === 0) {
+		endGame("NO ONE WON :(");
+	} else {
+		const randomIndex = Math.floor(Math.random() * emptyCells.length);
+		const computerId = emptyCells[randomIndex].id;
+		cells.forEach((cell) => {
+			if (cell.id === computerId) {
+				cell.innerText = computSym;
+				fillGridToCheck(cell, computSym);
+			}
+		});
+	}
 }
 
 function showWhoGoes(nextMove) {
@@ -81,44 +119,67 @@ function showWhoGoes(nextMove) {
 }
 
 function checkForWins() {
-	let xWins, oWins;
-	const winCombos = [
-		["00", "01", "02"],
-		["10", "11", "12"],
-		["20", "21", "22"],
-		["00", "10", "20"],
-		["01", "11", "21"],
-		["02", "12", "22"],
-		["00", "11", "22"],
-		["02", "11", "20"],
-	];
-	function getCellIdsBySymbol(sym) {
-		return allCellsArray
-			.filter((item) => item.innerText.includes(sym))
-			.map((el) => el.id);
+	let xWins = checkWinningCombos(x, gridToCheck);
+	let oWins = checkWinningCombos(o, gridToCheck);
+
+	if (oWins || xWins) {
+		const xScore = document.querySelector(".x-score");
+		const oScore = document.querySelector(".o-score");
+
+		addPoints(xWins ? xScore : oScore);
+		endGame(xWins ? "❌ WON" : "⭕️ WON");
+
+		return;
 	}
 
-	console.log(getCellIdsBySymbol(x));
-
-	winCombos.forEach((combo) => {
-		xWins = combo.every((id) => getCellIdsBySymbol(x).includes(id));
-		oWins = combo.every((id) => getCellIdsBySymbol(o).includes(id));
-
-		if (oWins || xWins) {
-			const xScore = document.querySelector(".x-score");
-			const oScore = document.querySelector(".o-score");
-
-			addPoints(xWins ? xScore : oScore);
-			endGame(xWins ? "❌ WON" : "⭕️ WON");
-
-			return;
-		}
-	});
-
-	//allCells = Array.from(cells);
 	if (allCellsArray.every((cell) => cell.innerText)) {
 		endGame("NO ONE WON :(");
 	}
+}
+
+function checkWinningCombos(sym, array) {
+	return (
+		checkColCombos(sym, array) ||
+		checkRowCombos(sym, array) ||
+		checkDiagonalCombos(sym, array)
+	);
+}
+
+function checkColCombos(sym, array) {
+	return array.some((row) => {
+		return row.every((value) => value === sym);
+	});
+}
+
+function checkRowCombos(sym, array) {
+	for (let i = 0; i < array.length; i++) {
+		let row = [];
+		array.forEach((col) => {
+			row.push(col[i]);
+		});
+		if (row.every((value) => value === sym)) return true;
+	}
+	return false;
+}
+
+function checkDiagonalCombos(sym, array) {
+	// from left to right
+	let diagon = [];
+	for (let i in array) {
+		diagon.push(array[i][i]);
+	}
+	if (diagon.every((value) => value === sym)) {
+		return true;
+	}
+	//from right to left
+	diagon = [];
+	j = array.length - 1;
+	for (let i = 0; i < array.length; i++) {
+		diagon.push(array[i][j]);
+		j--;
+	}
+
+	return diagon.every((value) => value === sym);
 }
 
 function addPoints(scoreToIncrease) {
@@ -141,21 +202,7 @@ function endGame(text) {
 	cells.forEach((cell) => {
 		cell.innerText = "";
 	});
+	gridToCheck = makeGridToCheck(count);
 	humanIcon = humanIcon === x ? o : x;
 	computerIcon = computerIcon === x ? o : x;
-}
-
-function computerMove(computSym) {
-	const emptyCells = allCellsArray.filter((cell) => !cell.innerText);
-	if (emptyCells.length === 0) {
-		endGame("NO ONE WON :(");
-	} else {
-		const randomIndex = Math.floor(Math.random() * emptyCells.length);
-		const computerId = emptyCells[randomIndex].id;
-		cells.forEach((cell) => {
-			if (cell.id === computerId) {
-				cell.innerText = computSym;
-			}
-		});
-	}
 }
