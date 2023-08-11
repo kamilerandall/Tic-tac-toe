@@ -137,24 +137,24 @@ function checkForWins() {
 	}
 }
 
-function checkWinningCombos(sym, array) {
+function checkWinningCombos(sym, gridToCheck) {
 	return (
-		checkColCombos(sym, array) ||
-		checkRowCombos(sym, array) ||
-		checkDiagonalCombos(sym, array)
+		checkColCombos(sym, gridToCheck) ||
+		checkRowCombos(sym, gridToCheck) ||
+		checkDiagonalCombos(sym, gridToCheck)
 	);
 }
 
-function checkColCombos(sym, array) {
-	return array.some((row) => {
+function checkColCombos(sym, gridToCheck) {
+	return gridToCheck.some((row) => {
 		return row.every((value) => value === sym);
 	});
 }
 
-function checkRowCombos(sym, array) {
-	for (let i = 0; i < array.length; i++) {
+function checkRowCombos(sym, gridToCheck) {
+	for (let i = 0; i < gridToCheck.length; i++) {
 		let row = [];
-		array.forEach((col) => {
+		gridToCheck.forEach((col) => {
 			row.push(col[i]);
 		});
 		if (row.every((value) => value === sym)) return true;
@@ -162,20 +162,20 @@ function checkRowCombos(sym, array) {
 	return false;
 }
 
-function checkDiagonalCombos(sym, array) {
+function checkDiagonalCombos(sym, gridToCheck) {
 	// from left to right
 	let diagon = [];
-	for (let i in array) {
-		diagon.push(array[i][i]);
+	for (let i in gridToCheck) {
+		diagon.push(gridToCheck[i][i]);
 	}
 	if (diagon.every((value) => value === sym)) {
 		return true;
 	}
 	//from right to left
 	diagon = [];
-	j = array.length - 1;
-	for (let i = 0; i < array.length; i++) {
-		diagon.push(array[i][j]);
+	j = gridToCheck.length - 1;
+	for (let i = 0; i < gridToCheck.length; i++) {
+		diagon.push(gridToCheck[i][j]);
 		j--;
 	}
 
