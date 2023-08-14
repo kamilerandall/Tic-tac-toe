@@ -32,6 +32,27 @@ h2 {
     margin-top: 100px;
 }
 
+.reset {
+    font-size: 25px;
+    background-color: #0f07ff;
+    text-shadow: 1px 1px 5px #000;
+    color: #fafafa;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    letter-spacing: 2.5px;
+}
+
+.reset:hover {
+    background-color: #6a65fc;
+    cursor: pointer;
+}
+
+.reset:active {
+    background-color: #0b0697;
+}
+
 .banner {
     display: block;
     position: absolute;
