@@ -41,14 +41,18 @@ let humanIcon = x;
 let computerIcon = o;
 
 if (savedGame) {
-	[banner, scoreBoard, gameSpace].forEach((item) =>
-		item.classList.add("changed")
-	);
+	[banner, scoreBoard, gameSpace].forEach((item) => item.classList.add("changed"));
 	const savedSingle = localStorage.getItem("singlePlayer");
-	isSinglePlayerGame = !!savedSingle;
-	let scores = JSON.parse(localStorage.getItem("scores"));
-	xScore.innerText = scores[0];
-	oScore.innerText = scores[1];
+	console.log(savedSingle);
+	isSinglePlayerGame = savedSingle ? true : false;
+	nextMove = localStorage.getItem("next move");
+	humanIcon = localStorage.getItem("human icon");
+	computerIcon = localStorage.getItem("computer icon");
+	if (localStorage.getItem("scores")) {
+		let scores = JSON.parse(localStorage.getItem("scores"));
+		xScore.innerText = scores[0];
+		oScore.innerText = scores[1];
+	}
 }
 
 let gameMap = savedGame ? JSON.parse(savedGame) : makeMap(count);
@@ -77,9 +81,7 @@ function drawGameGrid(gameMap) {
 singlePlayerBtn.addEventListener("click", () => {
 	localStorage.removeItem("game");
 	localStorage.removeItem("singlePlayer");
-	[banner, scoreBoard, gameSpace].forEach((item) =>
-		item.classList.add("changed")
-	);
+	[banner, scoreBoard, gameSpace].forEach((item) => item.classList.add("changed"));
 	isSinglePlayerGame = true;
 	localStorage.setItem("singlePlayer", isSinglePlayerGame);
 	showWhoGoes(humanIcon);
@@ -88,15 +90,12 @@ singlePlayerBtn.addEventListener("click", () => {
 twoPlayerBtn.addEventListener("click", () => {
 	localStorage.removeItem("game");
 	localStorage.removeItem("singlePlayer");
-	[banner, scoreBoard, gameSpace].forEach((item) =>
-		item.classList.add("changed")
-	);
+	[banner, scoreBoard, gameSpace].forEach((item) => item.classList.add("changed"));
 	isSinglePlayerGame = false;
 	localStorage.setItem("singlePlayer", isSinglePlayerGame);
 });
 
 resetBtn.addEventListener("click", () => {
-	localStorage.clear();
 	nextMove = o;
 	humanIcon = x;
 	computerIcon = o;
@@ -111,10 +110,13 @@ function playGame(cellId) {
 	if (checkIfCellIsEmpty(cellId)) {
 		if (isSinglePlayerGame) {
 			humanMove(cellId, humanIcon);
+			localStorage.setItem("human icon", humanIcon);
 			computerMove(computerIcon);
+			localStorage.setItem("computer icon", computerIcon);
 		} else {
 			showWhoGoes(nextMove);
 			nextMove = nextMove === x ? o : x;
+			localStorage.setItem("next move", nextMove);
 			fillGameMap(cellId, nextMove);
 			drawGameGrid(gameMap);
 		}
@@ -175,10 +177,7 @@ function checkForWins() {
 
 	if (oWins || xWins) {
 		addPoints(xWins ? xScore : oScore);
-		localStorage.setItem(
-			"scores",
-			JSON.stringify([xScore.innerText, oScore.innerText])
-		);
+		localStorage.setItem("scores", JSON.stringify([xScore.innerText, oScore.innerText]));
 		endGame(xWins ? "❌ WON" : "⭕️ WON");
 
 		return;
@@ -245,14 +244,10 @@ function addPoints(scoreToIncrease) {
 }
 
 function endGame(text) {
-	[banner, scoreBoard, gameSpace].forEach((item) =>
-		item.classList.remove("changed")
-	);
+	[banner, scoreBoard, gameSpace].forEach((item) => item.classList.remove("changed"));
 	bannerHeading.innerText = text;
 
-	singlePlayerBtn.innerText = isSinglePlayerGame
-		? "Play Again?"
-		: "SINGLE PLAYER";
+	singlePlayerBtn.innerText = isSinglePlayerGame ? "Play Again?" : "SINGLE PLAYER";
 	twoPlayerBtn.innerText = isSinglePlayerGame ? "TWO PLAYERS" : "Play Again?";
 
 	// localStorage.clear();
